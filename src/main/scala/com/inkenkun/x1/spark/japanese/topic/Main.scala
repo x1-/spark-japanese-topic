@@ -8,7 +8,7 @@ import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.feature.HashingTF
 import org.apache.spark.ml.tuning.{ParamGridBuilder, CrossValidator}
 import org.apache.spark.mllib.linalg.Vector
-import org.apache.spark.sql.{Row, SQLContext}
+import org.apache.spark.sql.{Row, SQLContext, SaveMode}
 
 case class LabeledDocument(id: Long, text: String, label: Double)
 case class Document(id: Long, text: String)
@@ -97,6 +97,9 @@ object Main {
         id = r.getString(0).toInt,
         text = r.getString(1) )
       )
+
+    val predict2 = model.transform( test.toDF() )
+    predict2.select( "id", "prediction" ).write.format( "json" ).mode( SaveMode.Overwrite ).save( output )
 
     val crossval = new CrossValidator()
       .setEstimator( pipeline )
